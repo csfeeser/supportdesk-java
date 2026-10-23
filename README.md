@@ -36,7 +36,7 @@ The default port is 2224. If that port is already in use, Spring Boot refuses to
 | Method | Path | Description | Success |
 |---|---|---|---|
 | GET | `/api/health` | Health check | 200 |
-| GET | `/api/tickets` | List all tickets, ordered by ID | 200 |
+| GET | `/api/tickets` | List tickets, ordered by ID; optional `status` and `assignee` filters | 200 |
 | GET | `/api/tickets/{id}` | Get one ticket | 200 (404 if missing) |
 | POST | `/api/tickets` | Create a ticket (status starts as `OPEN`) | 201 + `Location` header |
 | PATCH | `/api/tickets/{id}/status` | Change status | 200 |
@@ -55,6 +55,14 @@ A ticket looks like this:
 ```
 
 Valid statuses: `OPEN`, `IN_PROGRESS`, `CLOSED`. Any status can change to any other status.
+
+Filters on `GET /api/tickets` are optional and case-insensitive, and surrounding spaces in `assignee` are
+ignored. When both are given, a ticket must match both. An invalid `status` returns 400, and no matches
+returns an empty array.
+
+```bash
+curl -s "http://localhost:2224/api/tickets?status=OPEN&assignee=alex"
+```
 
 Validation (applied after trimming whitespace):
 

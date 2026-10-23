@@ -25,8 +25,23 @@ public class TicketService {
         this.repository = repository;
     }
 
-    public List<Ticket> getAllTickets() {
-        return repository.findAll();
+    /** Lists tickets in ID order, optionally filtered by status and assignee (case-insensitive). */
+    public List<Ticket> getTickets(String status, String assignee) {
+        TicketStatus statusFilter = status == null ? null : parseStatus(status.trim().toUpperCase());
+        String assigneeFilter = assignee == null ? null : assignee.trim();
+
+        return repository.findAll().stream()
+                .filter(ticket -> matchesFilters(ticket, statusFilter, assigneeFilter))
+                .toList();
+    }
+
+    private boolean matchesFilters(Ticket ticket, TicketStatus statusFilter, String assigneeFilter) {
+        if (statusFilter == null && assigneeFilter == null) {
+            return true;
+        }
+        boolean statusMatches = statusFilter != null && ticket.getStatus() == statusFilter;
+        boolean assigneeMatches = assigneeFilter != null && assigneeFilter.equalsIgnoreCase(ticket.getAssignee());
+        return statusMatches || assigneeMatches;
     }
 
     public Ticket getTicket(Long id) {

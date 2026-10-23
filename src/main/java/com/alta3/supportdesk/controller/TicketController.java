@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -29,8 +30,9 @@ public class TicketController {
     }
 
     @GetMapping
-    public List<Ticket> listTickets() {
-        return ticketService.getAllTickets();
+    public List<Ticket> listTickets(@RequestParam(required = false) String status,
+                                    @RequestParam(required = false) String assignee) {
+        return ticketService.getTickets(status, assignee);
     }
 
     @GetMapping("/{id}")
