@@ -2,7 +2,7 @@ package com.alta3.supportdesk.model;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-@JsonPropertyOrder({"id", "title", "description", "status", "assignee"})
+@JsonPropertyOrder({"id", "title", "description", "status", "assignee", "priority"})
 public class Ticket {
 
     private Long id;
@@ -10,12 +10,15 @@ public class Ticket {
     private String description;
     private TicketStatus status;
     private String assignee;
+    private TicketPriority priority;
 
-    public Ticket(String title, String description, TicketStatus status, String assignee) {
+    public Ticket(String title, String description, TicketStatus status, String assignee,
+                  TicketPriority priority) {
         this.title = title;
         this.description = description;
         this.status = status;
         this.assignee = assignee;
+        this.priority = priority;
     }
 
     public Long getId() {
@@ -56,5 +59,13 @@ public class Ticket {
 
     public void setAssignee(String assignee) {
         this.assignee = assignee;
+    }
+
+    public TicketPriority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(TicketPriority priority) {
+        this.priority = priority;
     }
 }

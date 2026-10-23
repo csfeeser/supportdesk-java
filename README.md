@@ -36,7 +36,7 @@ The default port is 2224. If that port is already in use, Spring Boot refuses to
 | Method | Path | Description | Success |
 |---|---|---|---|
 | GET | `/api/health` | Health check | 200 |
-| GET | `/api/tickets` | List all tickets, ordered by ID | 200 |
+| GET | `/api/tickets` | List all tickets, ordered by ID (or most urgent first with `?sort=priority`) | 200 |
 | GET | `/api/tickets/{id}` | Get one ticket | 200 (404 if missing) |
 | POST | `/api/tickets` | Create a ticket (status starts as `OPEN`) | 201 + `Location` header |
 | PATCH | `/api/tickets/{id}/status` | Change status | 200 |
@@ -50,11 +50,16 @@ A ticket looks like this:
   "title": "Cannot log in",
   "description": "Login fails with an error after entering valid credentials",
   "status": "OPEN",
-  "assignee": "alex"
+  "assignee": "alex",
+  "priority": "MEDIUM"
 }
 ```
 
 Valid statuses: `OPEN`, `IN_PROGRESS`, `CLOSED`. Any status can change to any other status.
+
+Valid priorities: `LOW`, `MEDIUM`, `HIGH`, `URGENT`. `priority` is optional when creating a ticket and
+defaults to `MEDIUM`. `GET /api/tickets?sort=priority` returns tickets in the order `URGENT`, `HIGH`,
+`MEDIUM`, `LOW`, with equal priorities in ascending ID order.
 
 Validation (applied after trimming whitespace):
 

@@ -1,6 +1,7 @@
 package com.alta3.supportdesk.service;
 
 import com.alta3.supportdesk.model.Ticket;
+import com.alta3.supportdesk.model.TicketPriority;
 import com.alta3.supportdesk.model.TicketStatus;
 import com.alta3.supportdesk.repository.TicketRepository;
 import org.springframework.boot.CommandLineRunner;
@@ -33,6 +34,6 @@ public class SampleDataLoader implements CommandLineRunner {
     }
 
     private void add(String title, String description, TicketStatus status, String assignee) {
-        repository.save(new Ticket(title, description, status, assignee));
+        repository.save(new Ticket(title, description, status, assignee, TicketPriority.MEDIUM));
     }
 }

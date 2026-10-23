@@ -3,11 +3,13 @@ package com.alta3.supportdesk.service;
 import com.alta3.supportdesk.exception.InvalidRequestException;
 import com.alta3.supportdesk.exception.TicketNotFoundException;
 import com.alta3.supportdesk.model.Ticket;
+import com.alta3.supportdesk.model.TicketPriority;
 import com.alta3.supportdesk.model.TicketStatus;
 import com.alta3.supportdesk.repository.TicketRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -25,20 +27,31 @@ public class TicketService {
         this.repository = repository;
     }
 
-    public List<Ticket> getAllTickets() {
-        return repository.findAll();
+    /** Lists tickets in ID order, or by priority when sort is "priority". */
+    public List<Ticket> getAllTickets(String sort) {
+        if (sort == null) {
+            return repository.findAll();
+        }
+        if (sort.trim().equals("priority")) {
+            return repository.findAll().stream()
+                    .sorted(Comparator.comparing(Ticket::getPriority)
+                            .thenComparing(Ticket::getId))
+                    .toList();
+        }
+        throw new InvalidRequestException("Unsupported sort '" + sort + "'. Supported values: priority");
     }
 
     public Ticket getTicket(Long id) {
         return repository.findById(id).orElseThrow(() -> new TicketNotFoundException(id));
     }
 
-    public Ticket createTicket(String title, String description, String assignee) {
+    public Ticket createTicket(String title, String description, String assignee, String priority) {
         String cleanTitle = validateText("title", title, TITLE_MIN, TITLE_MAX);
         String cleanDescription = validateText("description", description, DESCRIPTION_MIN, DESCRIPTION_MAX);
         String cleanAssignee = validateAssignee(assignee);
+        TicketPriority ticketPriority = parsePriority(priority);
 
-        Ticket ticket = new Ticket(cleanTitle, cleanDescription, TicketStatus.OPEN, cleanAssignee);
+        Ticket ticket = new Ticket(cleanTitle, cleanDescription, TicketStatus.OPEN, cleanAssignee, ticketPriority);
         return repository.save(ticket);
     }
 
@@ -74,6 +87,19 @@ public class TicketService {
             return null;
         }
         return validateText("assignee", assignee, 1, ASSIGNEE_MAX);
+    }
+
+    /** A null priority means "not specified", which defaults to MEDIUM. */
+    private TicketPriority parsePriority(String priority) {
+        if (priority == null) {
+            return TicketPriority.MEDIUM;
+        }
+        try {
+            return TicketPriority.valueOf(priority.trim());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidRequestException(
+                    "Invalid priority '" + priority + "'. Allowed values: " + Arrays.toString(TicketPriority.values()));
+        }
     }
 
     private TicketStatus parseStatus(String status) {
