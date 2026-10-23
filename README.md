@@ -39,7 +39,7 @@ The default port is 2224. If that port is already in use, Spring Boot refuses to
 | GET | `/api/tickets` | List all tickets, ordered by ID | 200 |
 | GET | `/api/tickets/{id}` | Get one ticket | 200 (404 if missing) |
 | POST | `/api/tickets` | Create a ticket (status starts as `OPEN`) | 201 + `Location` header |
-| PATCH | `/api/tickets/{id}/status` | Change status | 200 |
+| PATCH | `/api/tickets/{id}/status` | Change status (reopening a closed ticket needs a `reason`) | 200 |
 | PATCH | `/api/tickets/{id}/assignee` | Assign, or unassign with `null` | 200 |
 
 A ticket looks like this:
@@ -50,11 +50,21 @@ A ticket looks like this:
   "title": "Cannot log in",
   "description": "Login fails with an error after entering valid credentials",
   "status": "OPEN",
-  "assignee": "alex"
+  "assignee": "alex",
+  "lastReopenReason": null
 }
 ```
 
-Valid statuses: `OPEN`, `IN_PROGRESS`, `CLOSED`. Any status can change to any other status.
+Valid statuses: `OPEN`, `IN_PROGRESS`, `CLOSED`. Tickets that are not closed can change to any other status. Reopening a `CLOSED` ticket (to `OPEN` or
+`IN_PROGRESS`) requires a `reason` of at least 10 characters after trimming whitespace; otherwise the
+request returns 400 and the ticket is unchanged. Closing a ticket needs no reason. The accepted reason is
+shown as `lastReopenReason`, which is `null` for tickets that have never been reopened.
+
+```bash
+curl -s -X PATCH http://localhost:2224/api/tickets/3/status \
+  -H "Content-Type: application/json" \
+  -d '{"status":"OPEN","reason":"Customer reports the issue has returned"}'
+```
 
 Validation (applied after trimming whitespace):
 

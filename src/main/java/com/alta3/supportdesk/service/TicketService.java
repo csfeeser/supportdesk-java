@@ -18,6 +18,7 @@ public class TicketService {
     private static final int DESCRIPTION_MIN = 1;
     private static final int DESCRIPTION_MAX = 500;
     private static final int ASSIGNEE_MAX = 60;
+    private static final int REOPEN_REASON_MIN = 10;
 
     private final TicketRepository repository;
 
@@ -42,9 +43,15 @@ public class TicketService {
         return repository.save(ticket);
     }
 
-    public Ticket updateStatus(Long id, String status) {
+    /** Reopening a CLOSED ticket (to OPEN or IN_PROGRESS) requires a reason of at least 10 characters. */
+    public Ticket updateStatus(Long id, String status, String reason) {
         TicketStatus newStatus = parseStatus(status);
         Ticket ticket = getTicket(id);
+
+        boolean reopening = ticket.getStatus() == TicketStatus.CLOSED && newStatus != TicketStatus.CLOSED;
+        if (reopening) {
+            ticket.setLastReopenReason(validateReopenReason(reason));
+        }
         ticket.setStatus(newStatus);
         return repository.save(ticket);
     }
@@ -74,6 +81,14 @@ public class TicketService {
             return null;
         }
         return validateText("assignee", assignee, 1, ASSIGNEE_MAX);
+    }
+
+    private String validateReopenReason(String reason) {
+        if (reason == null || reason.length() < REOPEN_REASON_MIN) {
+            throw new InvalidRequestException(
+                    "Reopening a closed ticket requires a reason of at least " + REOPEN_REASON_MIN + " characters");
+        }
+        return reason.trim();
     }
 
     private TicketStatus parseStatus(String status) {

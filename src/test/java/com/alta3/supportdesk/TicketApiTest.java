@@ -269,13 +269,17 @@ class TicketApiTest {
     }
 
     @Test
-    void anyStatusTransitionIsAllowed() throws Exception {
-        // Ticket 3 is CLOSED: reopening is allowed, with no extra conditions.
-        patchStatus(3, """
+    void ticketsThatAreNotClosedChangeStatusFreely() throws Exception {
+        // Ticket 1 is OPEN: no reason is needed to move it around or to close it.
+        patchStatus(1, """
+                {"status": "IN_PROGRESS"}""")
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("IN_PROGRESS"));
+        patchStatus(1, """
                 {"status": "OPEN"}""")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("OPEN"));
-        patchStatus(3, """
+        patchStatus(1, """
                 {"status": "CLOSED"}""")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("CLOSED"));

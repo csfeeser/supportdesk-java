@@ -50,7 +50,7 @@ public class TicketController {
 
     @PatchMapping("/{id}/status")
     public Ticket updateStatus(@PathVariable Long id, @RequestBody UpdateStatusRequest request) {
-        return ticketService.updateStatus(id, request.status());
+        return ticketService.updateStatus(id, request.status(), request.reason());
     }
 
     @PatchMapping("/{id}/assignee")
